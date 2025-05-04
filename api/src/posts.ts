@@ -1,5 +1,10 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+export function extractEmojis(input: string): string {
+  // 絵文字にマッチする正規表現（ZWJ絵文字・スキンカラー含む）
+  const emojiRegex = /(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})(?:\uFE0F|\u200D|\p{Emoji_Modifier})*/gu
+  return (input.match(emojiRegex) || []).join('')
+}
 
 type Env = {
   Bindings: {
@@ -31,7 +36,7 @@ app.post("/", async (c) => {
   const postLimit = 5; // 同じIPからの投稿回数制限
   // リクエストボディの処理
   const body = await c.req.json();
-  let text = body.text?.trim();
+  let text = extractEmojis(body).trim();
 
   if (!text || text.length > 200) {
     return c.text(
