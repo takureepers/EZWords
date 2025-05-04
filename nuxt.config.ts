@@ -7,4 +7,5 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
   css: ["~/assets/css/base.css"],
+  modules: ["nuxt-twemoji"],
 })

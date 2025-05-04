@@ -8,7 +8,7 @@ const ipRateLimit = new Map<string, { lastPostTime: number, postCount: number }>
 
 app.use('*', rateLimitMiddleware)
 app.use('*', cors({
-    origin: 'ezwrd.takureepers.net',
+    origin: '*',
 }))
 app.route("/posts", posts);
 
