@@ -1,0 +1,16 @@
+-- 投稿テーブル（定型文テキストのみ）
+DROP TABLE IF EXISTS Posts;
+CREATE TABLE IF NOT EXISTS Posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    text TEXT NOT NULL, -- 投稿された定型文
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- いいね（誰が押したかは記録しない、単なるカウント用）
+DROP TABLE IF EXISTS Likes;
+CREATE TABLE IF NOT EXISTS Likes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (post_id) REFERENCES Posts(id)
+);
