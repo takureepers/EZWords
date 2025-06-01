@@ -36,7 +36,7 @@ app.post("/", async (c) => {
   const postLimit = 5; // 同じIPからの投稿回数制限
   // リクエストボディの処理
   const body = await c.req.json();
-  let text = extractEmojis(body).trim();
+  let text = extractEmojis(body.text).trim();
 
   if (!text || text.length > 200) {
     return c.text(

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 const post_text = ref('');
+// const postmodal = document.getElementById('postmodal') as HTMLDialogElement | null;
 // import Alert from '@/components/Alert.vue';
 
 // const alertMessage = ref('');
@@ -17,19 +18,40 @@ function extractEmojis(input: string): string {
     const emojiRegex = /(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})(?:\uFE0F|\u200D|\p{Emoji_Modifier})*/gu
     return (input.match(emojiRegex) || []).join('')
 }
-function post(text: string) {
+async function post() {
+    const text = post_text.value;
     if (text.trim() == '' || text.length > 200) {
-        alert ('投稿内容が空か、または200文字を超えています。');
+        alert('投稿内容が空か、または200文字を超えています。');
     } else if (extractEmojis(text).length < 1) {
-        alert ('絵文字を含む投稿をしてください。');
+        alert('絵文字を含む投稿をしてください。');
         // return;
     } else {
-        useFetch("https://ezwords_api.takureepers.workers.dev", {
-            method: 'POST',
-            body: text,
-        })}
-        alert ('投稿が成功しました！');
+        try {
+            const res = await useFetch("https://ezwords_api.takureepers.workers.dev/posts", {
+                method: 'POST',
+                body: JSON.stringify(text),
+            })
+            if (res.error) {
+                if (res.error.value) {
+                    // messageプロパティがあればそれを、なければJSON文字列を表示
+                    const msg = typeof res.error.value === 'object' && 'message' in res.error.value
+                        ? res.error.value.message
+                        : JSON.stringify(res.error.value);
+                    alert('投稿に失敗しました: ' + msg);
+                }
+            } else {
+                alert('投稿が成功しました！');
+                post_text.value = ''; // 投稿後にテキストエリアをクリア
+            }
+        } catch {
+            alert('通信エラーが発生しました。');
+        }
     }
+    closeModal();
+    location.reload(); // 投稿後にページをリロードして最新の投稿を表示
+    // バグ修正用
+
+}
 </script>
 <template>
     <div class="flex flex-col h-screen">
@@ -64,16 +86,17 @@ function post(text: string) {
             <div class="modal-box">
                 <h3 class="text-lg font-bold">投稿</h3>
                 <div class="py-4">
-                    <textarea v-model="post_text" class="textarea w-full" placeholder="絵文字でなにか投稿してみよう..." style="resize: none;"></textarea>
+                    <textarea v-model="post_text" class="textarea w-full" placeholder="絵文字でなにか投稿してみよう..."
+                        style="resize: none;"></textarea>
                 </div>
-                <emoji-picker></emoji-picker>
+                <!-- <emoji-picker></emoji-picker> -->
                 <div class="modal-action">
                     <div class="join">
-                        <button class="btn join-item btn-primary" @click="post(post_text)">投稿</button>
+                        <button class="btn join-item btn-primary" @click="post();">投稿</button>
                         <button class="btn join-item btn-secondary">プレビュー</button>
                         <form method="dialog">
                             <!-- if there is a button in form, it will close the modal -->
-                            <button class="btn join-item">閉じる</button>
+                            <button id="postclose" class="btn join-item">閉じる</button>
                         </form>
                     </div>
                 </div>
@@ -82,3 +105,9 @@ function post(text: string) {
         <Footer />
     </div>
 </template>
+<script lang="ts">
+function closeModal() {
+    const postmodal = document.getElementById('postmodal') as HTMLDialogElement | null;
+    if (postmodal) postmodal.close();
+}
+</script>
