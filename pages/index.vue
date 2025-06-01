@@ -49,6 +49,7 @@ async function post() {
     }
     closeModal();
     location.reload(); // 投稿後にページをリロードして最新の投稿を表示
+    // バグ修正用
 
 }
 </script>
