@@ -1,10 +1,35 @@
 <script setup lang="ts">
+import { ref } from 'vue';
+const post_text = ref('');
+// import Alert from '@/components/Alert.vue';
+
+// const alertMessage = ref('');
+// const alertVisible = ref(false);
+
 const { data: posts, error } = await useFetch<{ id: number; text: string; likes_count: number }[]>('https://ezwords_api.takureepers.workers.dev/posts')
 async function like(id: number) {
     await useFetch(`https://ezwords_api.takureepers.workers.dev/posts/${id}/like`, {
         method: 'POST',
     })
 }
+function extractEmojis(input: string): string {
+    // 絵文字にマッチする正規表現（ZWJ絵文字・スキンカラー含む）
+    const emojiRegex = /(?:\p{Extended_Pictographic}|\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base})(?:\uFE0F|\u200D|\p{Emoji_Modifier})*/gu
+    return (input.match(emojiRegex) || []).join('')
+}
+function post(text: string) {
+    if (text.trim() == '' || text.length > 200) {
+        alert ('投稿内容が空か、または200文字を超えています。');
+    } else if (extractEmojis(text).length < 1) {
+        alert ('絵文字を含む投稿をしてください。');
+        // return;
+    } else {
+        useFetch("https://ezwords_api.takureepers.workers.dev", {
+            method: 'POST',
+            body: text,
+        })}
+        alert ('投稿が成功しました！');
+    }
 </script>
 <template>
     <div class="flex flex-col h-screen">
@@ -32,18 +57,25 @@ async function like(id: number) {
                     onclick="postmodal.showModal()">
                     Post
                 </div>
+                <!-- <Alert /> -->
             </TwemojiParse>
         </div>
         <dialog id="postmodal" class="modal">
             <div class="modal-box">
-                <h3 class="text-lg font-bold">Hello!</h3>
-                <p class="py-4">Press ESC key or click the button below to close</p>
+                <h3 class="text-lg font-bold">投稿</h3>
+                <div class="py-4">
+                    <textarea v-model="post_text" class="textarea w-full" placeholder="絵文字でなにか投稿してみよう..." style="resize: none;"></textarea>
+                </div>
                 <emoji-picker></emoji-picker>
                 <div class="modal-action">
-                    <form method="dialog">
-                        <!-- if there is a button in form, it will close the modal -->
-                        <button class="btn">Close</button>
-                    </form>
+                    <div class="join">
+                        <button class="btn join-item btn-primary" @click="post(post_text)">投稿</button>
+                        <button class="btn join-item btn-secondary">プレビュー</button>
+                        <form method="dialog">
+                            <!-- if there is a button in form, it will close the modal -->
+                            <button class="btn join-item">閉じる</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </dialog>
